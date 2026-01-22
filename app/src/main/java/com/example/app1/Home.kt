@@ -1,125 +1,74 @@
 package com.example.app1
 
-import androidx.compose.runtime.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import java.util.Date
-
-
-import com.example.app1.domain.*
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.app1.viewmodel.TaskViewModel // TÄRKEÄ: Tämä korjaa Unresolved reference -virheen
 
 @Composable
-fun HomeScreen() {
+fun HomeScreen(taskViewModel: TaskViewModel = viewModel()) {
+    var newTaskTitle by remember { mutableStateOf("") }
 
-    val tasksState = remember { mutableStateOf(Tasks) }
-    val showDialog = remember { mutableStateOf(false) }
-    val newTaskTitle = remember { mutableStateOf("") }
-    val newTaskDescription = remember { mutableStateOf("") }
+    Column(modifier = Modifier.padding(16.dp).fillMaxSize()) {
+        Text("Tehtävälista", style = MaterialTheme.typography.headlineMedium)
 
-
-    if (showDialog.value) {
-        AlertDialog(
-            onDismissRequest = { showDialog.value = false },
-            title = { Text("Uusi tehtävä") },
-            text = {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    TextField(
-                        value = newTaskTitle.value,
-                        onValueChange = { newTaskTitle.value = it },
-                        label = { Text("Otsikko") }
-                    )
-                    TextField(
-                        value = newTaskDescription.value,
-                        onValueChange = { newTaskDescription.value = it },
-                        label = { Text("Kuvaus") }
-                    )
-                }
-            },
-            confirmButton = {
-                Button(onClick = {
-                    if (newTaskTitle.value.isNotBlank()) {
-                        val uusi = Task(
-                            id = (tasksState.value.maxOfOrNull { it.id } ?: 0) + 1,
-                            title = newTaskTitle.value,
-                            description = newTaskDescription.value,
-                            priority = 1,
-                            dueDate = Date(),
-                            done = false
-                        )
-
-                        tasksState.value = addTask(tasksState.value, uusi)
-
-
-                        newTaskTitle.value = ""
-                        newTaskDescription.value = ""
-                        showDialog.value = false
-                    }
-                }) { Text("Lisää") }
-            },
-            dismissButton = {
-                TextButton(onClick = { showDialog.value = false }) { Text("Peruuta") }
-            }
-        )
-    }
-
-    Column(modifier = Modifier.padding(16.dp)) {
-        Text(text = "Tehtävälista", style = MaterialTheme.typography.headlineMedium)
-
+        // Uuden tehtävän lisäys: TextField + Button
         Row(
             modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Button(onClick = { showDialog.value = true }) {
+            TextField(
+                value = newTaskTitle,
+                onValueChange = { newTaskTitle = it },
+                label = { Text("Mitä tehdään?") },
+                modifier = Modifier.weight(1f)
+            )
+            Button(
+                onClick = {
+                    if (newTaskTitle.isNotBlank()) {
+                        taskViewModel.addTask(newTaskTitle, "Kuvaus")
+                        newTaskTitle = ""
+                    }
+                },
+                modifier = Modifier.padding(start = 8.dp)
+            ) {
                 Text("Lisää")
             }
+        }
 
-
-            Button(onClick = {
-                tasksState.value = sortByDueDate(tasksState.value)
-            }) {
-                Text("Järjestä")
-            }
-
-            Button(onClick = {
-                tasksState.value = filterByDone(tasksState.value, true)
-            }) {
-                Text("Vain valmiit")
-            }
+        // Suodatus ja järjestys
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Button(onClick = { taskViewModel.sortByDueDate() }) { Text("Järjestä") }
+            Button(onClick = { taskViewModel.filterByDone(true) }) { Text("Vain valmiit") }
         }
 
         Spacer(modifier = Modifier.height(16.dp))
 
-
+        // Lista komponenteilla: Checkbox, Teksti, Poista-painike
         LazyColumn(modifier = Modifier.fillMaxSize()) {
-            items(tasksState.value) { task ->
+            items(taskViewModel.tasks) { task ->
                 Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(8.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween
+                    modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(text = task.title, style = MaterialTheme.typography.bodyLarge)
-                        Text(
-                            text = task.description,
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = androidx.compose.ui.graphics.Color.Gray
-                        )
-                        Text(
-                            text = if (task.done) "Tila: Valmis" else "Tila: Kesken",
-                            style = MaterialTheme.typography.bodySmall
-                        )
-                    }
-
-                    Button(onClick = {
-
-                        tasksState.value = toggleDone(tasksState.value, task.id)
-                    }) {
-                        Text("Muuta")
+                    Checkbox(
+                        checked = task.done,
+                        onCheckedChange = { taskViewModel.toggleDone(task.id) }
+                    )
+                    Text(
+                        text = task.title,
+                        modifier = Modifier.weight(1f).padding(horizontal = 8.dp)
+                    )
+                    IconButton(onClick = { taskViewModel.removeTask(task.id) }) {
+                        Icon(Icons.Default.Delete, contentDescription = "Poista")
                     }
                 }
             }
