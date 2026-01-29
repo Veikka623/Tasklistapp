@@ -1,4 +1,4 @@
-package com.example.app1.domain
+package com.example.app1.model
 
         import java.util.Date
 

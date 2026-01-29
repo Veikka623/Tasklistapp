@@ -1,50 +1,43 @@
 package com.example.app1.viewmodel
 
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
-import com.example.app1.domain.Task
-import com.example.app1.domain.Tasks
-import java.util.Date
+import com.example.app1.model.Task
+import com.example.app1.model.Tasks
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 
 class TaskViewModel : ViewModel() {
 
-    var tasks by mutableStateOf(listOf<Task>())
-        private set
-
-
-    init {
-        tasks = Tasks
-    }
+    private val _tasks = MutableStateFlow(Tasks)
+    val tasks: StateFlow<List<Task>> = _tasks.asStateFlow()
 
     fun addTask(title: String, description: String) {
         val newTask = Task(
-            id = (tasks.maxOfOrNull { it.id } ?: 0) + 1,
+            id = (_tasks.value.maxOfOrNull { it.id } ?: 0) + 1,
             title = title,
             description = description,
             priority = 1,
-            dueDate = Date(),
+            dueDate = java.util.Date(),
             done = false
         )
-        tasks = tasks + newTask
+        _tasks.value += newTask
+    }
+
+
+    fun updateTask(updatedTask: Task) {
+        _tasks.value = _tasks.value.map {
+            if (it.id == updatedTask.id) updatedTask else it
+        }
     }
 
     fun toggleDone(id: Int) {
-        tasks = tasks.map {
+        _tasks.value = _tasks.value.map {
             if (it.id == id) it.copy(done = !it.done) else it
         }
     }
 
     fun removeTask(id: Int) {
-        tasks = tasks.filter { it.id != id }
-    }
-
-    fun filterByDone(done: Boolean) {
-        tasks = tasks.filter { it.done == done }
-    }
-
-    fun sortByDueDate() {
-        tasks = tasks.sortedBy { it.dueDate }
+        _tasks.value = _tasks.value.filter { it.id != id }
     }
 }

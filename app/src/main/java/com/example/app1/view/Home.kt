@@ -1,5 +1,6 @@
-package com.example.app1
+package com.example.app1.view
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -11,16 +12,33 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.app1.viewmodel.TaskViewModel // TÄRKEÄ: Tämä korjaa Unresolved reference -virheen
+import com.example.app1.viewmodel.TaskViewModel
+import com.example.app1.model.Task
 
 @Composable
 fun HomeScreen(taskViewModel: TaskViewModel = viewModel()) {
+    // 1. Kuunnellaan ViewModelin tilaa reaktiivisesti
+    val tasks by taskViewModel.tasks.collectAsState()
+
+    // Tila muokattavalle tehtävälle (DetailScreen dialogia varten)
+    var editingTask by remember { mutableStateOf<Task?>(null) }
     var newTaskTitle by remember { mutableStateOf("") }
+
+    // 2. Näytetään muokkausdialogi, jos editingTask ei ole null
+    editingTask?.let { task ->
+        DetailDialog(
+            task = task,
+            onDismiss = { editingTask = null },
+            onSave = { updatedTask ->
+                taskViewModel.updateTask(updatedTask)
+                editingTask = null
+            }
+        )
+    }
 
     Column(modifier = Modifier.padding(16.dp).fillMaxSize()) {
         Text("Tehtävälista", style = MaterialTheme.typography.headlineMedium)
 
-        // Uuden tehtävän lisäys: TextField + Button
         Row(
             modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
             verticalAlignment = Alignment.CenterVertically
@@ -44,19 +62,14 @@ fun HomeScreen(taskViewModel: TaskViewModel = viewModel()) {
             }
         }
 
-        // Suodatus ja järjestys
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            Button(onClick = { taskViewModel.sortByDueDate() }) { Text("Järjestä") }
-            Button(onClick = { taskViewModel.filterByDone(true) }) { Text("Vain valmiit") }
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // Lista komponenteilla: Checkbox, Teksti, Poista-painike
+        // Lista käyttää nyt tasks-muuttujaa, joka tulee collectAsState():sta
         LazyColumn(modifier = Modifier.fillMaxSize()) {
-            items(taskViewModel.tasks) { task ->
+            items(tasks) { task ->
                 Row(
-                    modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 4.dp)
+                        .clickable { editingTask = task }, // Klikkaus avaa muokkauksen
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Checkbox(

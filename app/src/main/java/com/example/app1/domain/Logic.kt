@@ -1,5 +1,7 @@
 package com.example.app1.domain
 
+import com.example.app1.model.Task
+
 fun addTask(list: List<Task>, task: Task): List<Task> {
     return list + task
 }
