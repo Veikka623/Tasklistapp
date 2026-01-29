@@ -17,14 +17,14 @@ import com.example.app1.model.Task
 
 @Composable
 fun HomeScreen(taskViewModel: TaskViewModel = viewModel()) {
-    // 1. Kuunnellaan ViewModelin tilaa reaktiivisesti
+
     val tasks by taskViewModel.tasks.collectAsState()
 
-    // Tila muokattavalle tehtävälle (DetailScreen dialogia varten)
+
     var editingTask by remember { mutableStateOf<Task?>(null) }
     var newTaskTitle by remember { mutableStateOf("") }
 
-    // 2. Näytetään muokkausdialogi, jos editingTask ei ole null
+
     editingTask?.let { task ->
         DetailDialog(
             task = task,
@@ -62,14 +62,14 @@ fun HomeScreen(taskViewModel: TaskViewModel = viewModel()) {
             }
         }
 
-        // Lista käyttää nyt tasks-muuttujaa, joka tulee collectAsState():sta
+
         LazyColumn(modifier = Modifier.fillMaxSize()) {
             items(tasks) { task ->
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(vertical = 4.dp)
-                        .clickable { editingTask = task }, // Klikkaus avaa muokkauksen
+                        .clickable { editingTask = task },
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Checkbox(
