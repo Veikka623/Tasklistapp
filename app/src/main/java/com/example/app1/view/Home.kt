@@ -5,83 +5,64 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.app1.viewmodel.TaskViewModel
 import com.example.app1.model.Task
+import com.example.app1.viewmodel.TaskViewModel
 
 @Composable
-fun HomeScreen(taskViewModel: TaskViewModel = viewModel()) {
-
+fun HomeScreen(taskViewModel: TaskViewModel) {
     val tasks by taskViewModel.tasks.collectAsState()
 
+   var showDialog by remember { mutableStateOf(false) }
+    var selectedTask by remember { mutableStateOf<Task?>(null) }
 
-    var editingTask by remember { mutableStateOf<Task?>(null) }
-    var newTaskTitle by remember { mutableStateOf("") }
-
-
-    editingTask?.let { task ->
+    if (showDialog) {
         DetailDialog(
-            task = task,
-            onDismiss = { editingTask = null },
-            onSave = { updatedTask ->
-                taskViewModel.updateTask(updatedTask)
-                editingTask = null
+            task = selectedTask,
+            onDismiss = { showDialog = false },
+            onSave = { title, desc ->
+                if (selectedTask == null) {
+                    taskViewModel.addTask(title, desc)
+                } else {
+                    taskViewModel.updateTask(selectedTask!!.copy(title = title, description = desc))
+                }
+                showDialog = false
             }
         )
     }
 
-    Column(modifier = Modifier.padding(16.dp).fillMaxSize()) {
-        Text("Tehtävälista", style = MaterialTheme.typography.headlineMedium)
-
-        Row(
-            modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            TextField(
-                value = newTaskTitle,
-                onValueChange = { newTaskTitle = it },
-                label = { Text("Mitä tehdään?") },
-                modifier = Modifier.weight(1f)
-            )
-            Button(
-                onClick = {
-                    if (newTaskTitle.isNotBlank()) {
-                        taskViewModel.addTask(newTaskTitle, "Kuvaus")
-                        newTaskTitle = ""
-                    }
-                },
-                modifier = Modifier.padding(start = 8.dp)
-            ) {
-                Text("Lisää")
+    Scaffold(
+        floatingActionButton = {
+            FloatingActionButton(onClick = {
+                selectedTask = null
+                showDialog = true
+            }) {
+                Icon(Icons.Default.Add, contentDescription = "Add")
             }
         }
-
-
-        LazyColumn(modifier = Modifier.fillMaxSize()) {
+    ) { padding ->
+        LazyColumn(modifier = Modifier.padding(padding)) {
             items(tasks) { task ->
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(vertical = 4.dp)
-                        .clickable { editingTask = task },
+                        .padding(16.dp)
+                        .clickable {
+                            selectedTask = task
+                            showDialog = true
+                        },
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Checkbox(
-                        checked = task.done,
-                        onCheckedChange = { taskViewModel.toggleDone(task.id) }
-                    )
-                    Text(
-                        text = task.title,
-                        modifier = Modifier.weight(1f).padding(horizontal = 8.dp)
-                    )
+                    Checkbox(checked = task.done, onCheckedChange = { taskViewModel.toggleDone(task.id) })
+                    Text(task.title, modifier = Modifier.weight(1f))
                     IconButton(onClick = { taskViewModel.removeTask(task.id) }) {
-                        Icon(Icons.Default.Delete, contentDescription = "Poista")
+                        Icon(Icons.Default.Delete, contentDescription = "Delete")
                     }
                 }
             }

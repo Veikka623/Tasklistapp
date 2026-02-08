@@ -54,3 +54,19 @@ Koodin kategorisointi tekee koodista helpommin ylläpidettävää ja selkeämpä
 Miten StateFlow toimii: 
 StateFlow säilyttää sovelluksen uusimman tilan. 
 Kun sovellusta päivitetään, StateFlow ilmoittaa siitä käyttöliittymälle, joka muotoilee itsensä uudelleen.
+
+
+Viikko 4 - Navigointi ja jaettu tila
+
+Sovellukseen lisätty navigointi JetPack Composella.
+
+NavHost ja NavController mahdollistavat siirtymisen eri sivujen/näkymien välillä.
+
+TaskViewModel jaetaan  Home- että Calendar-näkymille, 
+joten data pysyy samana ja ajantasaisena molemmissa.
+
+Uudet ominaisuudet:
+
+CalendarScreen: Näyttää tehtävät listana päivämäärän mukaan.
+
+AlertDialog: Tehtävien lisäys ja muokkaus on nyt pop-up.
