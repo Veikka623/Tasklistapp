@@ -18,7 +18,9 @@ import androidx.navigation.compose.rememberNavController
 import com.example.app1.view.CalendarScreen
 import com.example.app1.view.HomeScreen
 import com.example.app1.view.SettingsScreen
+import com.example.app1.view.WeatherScreen
 import com.example.app1.viewmodel.TaskViewModel
+import com.example.app1.viewmodel.WeatherViewModel
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -32,12 +34,14 @@ class MainActivity : ComponentActivity() {
 const val ROUTE_HOME = "home"
 const val ROUTE_CALENDAR = "calendar"
 const val ROUTE_SETTINGS = "settings"
+const val ROUTE_WEATHER = "weather"
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TodoApp() {
     val navController = rememberNavController()
     val sharedViewModel: TaskViewModel = viewModel()
+    val weatherViewModel: WeatherViewModel = viewModel()
 
     Scaffold(
         topBar = {
@@ -53,6 +57,9 @@ fun TodoApp() {
                     IconButton(onClick = { navController.navigate(ROUTE_SETTINGS) }) {
                         Icon(Icons.Default.Settings, contentDescription = "Settings")
                     }
+                    IconButton(onClick = { navController.navigate(ROUTE_WEATHER) }) {
+                        Text("Sää")
+                    }
                 }
             )
         }
@@ -67,14 +74,16 @@ fun TodoApp() {
                 HomeScreen(taskViewModel = sharedViewModel)
             }
 
-
             composable(ROUTE_CALENDAR) {
                 CalendarScreen(taskViewModel = sharedViewModel)
             }
 
-
             composable(ROUTE_SETTINGS) {
                 SettingsScreen()
+            }
+
+            composable(ROUTE_WEATHER) {
+                WeatherScreen(viewModel = weatherViewModel)
             }
         }
     }

@@ -70,3 +70,23 @@ Uudet ominaisuudet:
 CalendarScreen: Näyttää tehtävät listana päivämäärän mukaan.
 
 AlertDialog: Tehtävien lisäys ja muokkaus on nyt pop-up.
+
+Viikko 5 - Sääsovellus 
+
+Sovellukseen lisätty uusi sääsivu joka hakee API:lla säätietoja OpenWeatherista.
+
+Uudet ominaisuudet:
+
+Retrofit: Tekee HTTP-pyyntöjen tekemisen sovelluksen ja OpenWeatherin välillä.
+
+Gson: Muuttaa API:n JSON-datan Kotlinin dataluokiksi.
+
+Coroutines: API-kutsu tehdään coroutinella viewModelScope.launch -avulla,
+jotta sovelluksen käyttöliittymä ei jäädy datan latauksen ajaksi. 
+Ja kun data saapuu, käyttöliittymä päivittyy.
+
+UI-tilan hallinta: WeatherViewModel hallitsee erillistä WeatherUiState-oliota (Idle, Loading, Success, Error). 
+Compose-käyttöliittymä kuuntelee tätä tilaa ja piirtää itsensä automaattisesti uudelleen tilan muuttuessa (esim. näyttää latausympyrän tai virheviestin).
+
+API-avain: API-avain  tallennettu local.properties-tiedostoon, joka ei mene GitHubiin. 
+Sieltä sen saa BuildConfig-muuttujaksi, jota Retrofit käyttää.
