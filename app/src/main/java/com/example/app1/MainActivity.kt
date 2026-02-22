@@ -15,18 +15,35 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.room.Room
+import com.example.app1.data.local.AppDatabase
+import com.example.app1.data.repository.TaskRepository
 import com.example.app1.view.CalendarScreen
 import com.example.app1.view.HomeScreen
 import com.example.app1.view.SettingsScreen
 import com.example.app1.view.WeatherScreen
 import com.example.app1.viewmodel.TaskViewModel
+import com.example.app1.viewmodel.TaskViewModelFactory
 import com.example.app1.viewmodel.WeatherViewModel
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+
+        val db = Room.databaseBuilder(
+            applicationContext,
+            AppDatabase::class.java, "todo-database"
+        ).build()
+
+
+        val repository = TaskRepository(db.taskDao())
+
+
+        val factory = TaskViewModelFactory(repository)
+
         setContent {
-            TodoApp()
+            TodoApp(factory)
         }
     }
 }
@@ -38,9 +55,13 @@ const val ROUTE_WEATHER = "weather"
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TodoApp() {
+fun TodoApp(factory: TaskViewModelFactory) {
     val navController = rememberNavController()
-    val sharedViewModel: TaskViewModel = viewModel()
+
+
+    val sharedViewModel: TaskViewModel = viewModel(factory = factory)
+
+
     val weatherViewModel: WeatherViewModel = viewModel()
 
     Scaffold(

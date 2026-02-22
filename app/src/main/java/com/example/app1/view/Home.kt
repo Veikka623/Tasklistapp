@@ -19,7 +19,7 @@ import com.example.app1.viewmodel.TaskViewModel
 fun HomeScreen(taskViewModel: TaskViewModel) {
     val tasks by taskViewModel.tasks.collectAsState()
 
-   var showDialog by remember { mutableStateOf(false) }
+    var showDialog by remember { mutableStateOf(false) }
     var selectedTask by remember { mutableStateOf<Task?>(null) }
 
     if (showDialog) {
@@ -59,9 +59,13 @@ fun HomeScreen(taskViewModel: TaskViewModel) {
                         },
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Checkbox(checked = task.done, onCheckedChange = { taskViewModel.toggleDone(task.id) })
+
+                    Checkbox(checked = task.done, onCheckedChange = { taskViewModel.toggleDone(task) })
+
                     Text(task.title, modifier = Modifier.weight(1f))
-                    IconButton(onClick = { taskViewModel.removeTask(task.id) }) {
+
+
+                    IconButton(onClick = { taskViewModel.removeTask(task) }) {
                         Icon(Icons.Default.Delete, contentDescription = "Delete")
                     }
                 }

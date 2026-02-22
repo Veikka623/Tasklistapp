@@ -1,43 +1,64 @@
 package com.example.app1.viewmodel
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewModelScope
+import com.example.app1.data.repository.TaskRepository
 import com.example.app1.model.Task
-import com.example.app1.model.Tasks
-import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
+import java.util.Date
 
-class TaskViewModel : ViewModel() {
+class TaskViewModel(private val repository: TaskRepository) : ViewModel() {
 
-    private val _tasks = MutableStateFlow(Tasks)
-    val tasks: StateFlow<List<Task>> = _tasks.asStateFlow()
+
+    val tasks: StateFlow<List<Task>> = repository.allTasks.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = emptyList()
+    )
 
     fun addTask(title: String, description: String) {
         val newTask = Task(
-            id = (_tasks.value.maxOfOrNull { it.id } ?: 0) + 1,
             title = title,
             description = description,
             priority = 1,
-            dueDate = java.util.Date(),
+            dueDate = Date(),
             done = false
         )
-        _tasks.value += newTask
-    }
 
-
-    fun updateTask(updatedTask: Task) {
-        _tasks.value = _tasks.value.map {
-            if (it.id == updatedTask.id) updatedTask else it
+        viewModelScope.launch {
+            repository.insertTask(newTask)
         }
     }
 
-    fun toggleDone(id: Int) {
-        _tasks.value = _tasks.value.map {
-            if (it.id == id) it.copy(done = !it.done) else it
+    fun updateTask(task: Task) {
+        viewModelScope.launch {
+            repository.updateTask(task)
+        }
+    }
+fun toggleDone(task: Task) {
+        viewModelScope.launch {
+            repository.updateTask(task.copy(done = !task.done))
         }
     }
 
-    fun removeTask(id: Int) {
-        _tasks.value = _tasks.value.filter { it.id != id }
+    fun removeTask(task: Task) {
+        viewModelScope.launch {
+            repository.deleteTask(task)
+        }
+    }
+}
+
+
+class TaskViewModelFactory(private val repository: TaskRepository) : ViewModelProvider.Factory {
+    override fun <T : ViewModel> create(modelClass: Class<T>): T {
+        if (modelClass.isAssignableFrom(TaskViewModel::class.java)) {
+            @Suppress("UNCHECKED_CAST")
+            return TaskViewModel(repository) as T
+        }
+        throw IllegalArgumentException("Unknown ViewModel class")
     }
 }

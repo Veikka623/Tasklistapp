@@ -90,3 +90,23 @@ Compose-käyttöliittymä kuuntelee tätä tilaa ja piirtää itsensä automaatt
 
 API-avain: API-avain  tallennettu local.properties-tiedostoon, joka ei mene GitHubiin. 
 Sieltä sen saa BuildConfig-muuttujaksi, jota Retrofit käyttää.
+
+Viikko 6 - Room-tietokanta
+
+Sovellukseen lisätty paikallinen tietokanta (Room), jolla tehtävät tallentuvat 
+laitteen muistiin eivätkä nollaannu.
+
+Ominausuudet:
+
+Task: Dataluokka, josta Room tekee tietokantataulun.
+
+TaskDao: Rajapinta tietokantakyselyille. 
+AppDatabase: Kokoaa tietokannan ja yhdistää Daon sovellukseen.
+
+TaskRepository: Toimii yhteytenä tietokannan ja ViewModelin väliin ja 
+hakee datan ja tarjoilee sen eteenpäin.
+
+Miten datavirta kulkee:
+Room palauttaa tietokannan sisällön Flow-muodossa.
+Kun tietokantaan tulee muutos kuten tehtävän lisäys, Room ilmoittaa siitä repositoryn kautta ViewModelille.
+Compose kuuntelee ViewModelin tilaa ja päivittää näkymän.
